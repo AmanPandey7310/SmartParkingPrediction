@@ -10,19 +10,22 @@
 
         .container {
             display: grid;
-            grid-template-columns: repeat(4, 100px);
+            grid-template-columns: repeat(4, 150px);
             gap: 20px;
             justify-content: center;
             margin-top: 50px;
         }
 
         .slot {
-            width: 100px;
-            height: 100px;
-            line-height: 100px;
+            width: 150px;
+            height: 150px;
+            border-radius: 10px;
             color: white;
             font-weight: bold;
-            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .empty {
@@ -31,6 +34,18 @@
 
         .occupied {
             background-color: red;
+        }
+
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -59,9 +74,24 @@
                 div.classList.add("occupied");
             }
 
-            div.innerText = slot;
+            div.innerHTML = `
+                <h3>${slot}</h3>
+                <p>${data[slot] == 0 ? "Free 🟢" : "Occupied 🔴"}</p>
+                <button onclick="updateSlot('${slot}',1)">Park</button>
+                <button onclick="updateSlot('${slot}',0)">Remove</button>
+            `;
+
             container.appendChild(div);
         }
+    }
+
+    async function updateSlot(slot, status) {
+        await fetch("http://127.0.0.1:5000/update", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({slot: slot, status: status})
+        });
+        loadSlots();
     }
 
     // Load first time
