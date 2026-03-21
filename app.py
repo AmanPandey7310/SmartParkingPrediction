@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS   # 👈 CORS import
 
 app = Flask(__name__)
+CORS(app)  # 👈 Allow frontend (port 5500) to access backend (port 5000)
 
 # Dummy parking slots data
 slots = {
@@ -29,7 +31,7 @@ def update_slot():
 
     if slot_id in slots:
         slots[slot_id] = status
-        return jsonify({"message": "Slot updated successfully"})
+        return jsonify({"message": f"Slot {slot_id} updated successfully", "slots": slots})
     else:
         return jsonify({"error": "Invalid slot ID"}), 400
 
