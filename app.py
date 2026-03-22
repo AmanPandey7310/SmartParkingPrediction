@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sqlite3
+import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -10,6 +11,7 @@ def init_db():
     conn = sqlite3.connect("parking.db")
     cursor = conn.cursor()
 
+    # Slots table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS slots (
         id TEXT PRIMARY KEY,
@@ -17,18 +19,28 @@ def init_db():
     )
     """)
 
-    # Default slots insert karo
-    cursor.execute("INSERT OR REPLACE INTO slots VALUES ('A1',0)")
-    cursor.execute("INSERT OR REPLACE INTO slots VALUES ('A2',1)")
-    cursor.execute("INSERT OR REPLACE INTO slots VALUES ('A3',0)")
-    cursor.execute("INSERT OR REPLACE INTO slots VALUES ('A4',1)")
+    # Default slots
+    default_slots = [("A1", 0), ("A2", 1), ("A3", 0), ("A4", 1)]
+    cursor.executemany("INSERT OR REPLACE INTO slots VALUES (?, ?)", default_slots)
+
+    # ✅ History table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        slot TEXT,
+        status INTEGER,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        day TEXT
+    )
+    """)
 
     conn.commit()
     conn.close()
 
 # ✅ Call init_db before server starts
 init_db()
-# ----------------API-----------------
+
+# ---------------- API -----------------
 @app.route("/")
 def home():
     return "Smart Parking Backend Running 🚗"
@@ -51,7 +63,14 @@ def update_slot():
 
     conn = sqlite3.connect("parking.db")
     cursor = conn.cursor()
+
+    # Update slot status
     cursor.execute("UPDATE slots SET status=? WHERE id=?", (status, slot))
+
+    # ✅ Insert into history
+    day = datetime.datetime.now().strftime("%A")
+    cursor.execute("INSERT INTO history (slot, status, day) VALUES (?, ?, ?)", (slot, status, day))
+
     conn.commit()
     conn.close()
 
