@@ -13,7 +13,7 @@
             grid-template-columns: repeat(4, 150px);
             gap: 20px;
             justify-content: center;
-            margin-top: 50px;
+            margin-top: 30px;
         }
 
         .slot {
@@ -47,12 +47,44 @@
         button:hover {
             opacity: 0.8;
         }
+
+        #counts {
+            margin-top: 20px;
+        }
+
+        /* Progress bar styling */
+        .progress-container {
+            width: 60%;
+            background-color: #ddd;
+            border-radius: 20px;
+            margin: 20px auto;
+            height: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            text-align: center;
+            line-height: 25px;
+            color: white;
+            font-weight: bold;
+            background-color: orange;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
     </style>
 </head>
 
 <body>
 
 <h1>🚗 Smart Parking System</h1>
+
+<div id="counts"></div>
+
+<!-- Progress bar -->
+<div class="progress-container">
+    <div class="progress-bar" id="progressBar">0%</div>
+</div>
 
 <div class="container" id="parking"></div>
 
@@ -64,14 +96,21 @@
         const container = document.getElementById("parking");
         container.innerHTML = "";
 
+        // Count variables
+        let freeCount = 0;
+        let occupiedCount = 0;
+        let totalSlots = Object.keys(data).length;
+
         for (let slot in data) {
             let div = document.createElement("div");
             div.classList.add("slot");
 
             if (data[slot] == 0) {
                 div.classList.add("empty");
+                freeCount++;
             } else {
                 div.classList.add("occupied");
+                occupiedCount++;
             }
 
             div.innerHTML = `
@@ -83,6 +122,18 @@
 
             container.appendChild(div);
         }
+
+        // Show counts
+        document.getElementById("counts").innerHTML = `
+            <h2>Total Free Slots: ${freeCount}</h2>
+            <h2>Total Occupied Slots: ${occupiedCount}</h2>
+        `;
+
+        // Update progress bar
+        let occupancyPercent = Math.round((occupiedCount / totalSlots) * 100);
+        const progressBar = document.getElementById("progressBar");
+        progressBar.style.width = occupancyPercent + "%";
+        progressBar.innerText = occupancyPercent + "%";
     }
 
     async function updateSlot(slot, status) {
