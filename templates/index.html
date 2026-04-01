@@ -49,10 +49,34 @@
             opacity: 0.8;
         }
         
+        #counts {
+            margin-top: 20px;
+        }
+        
         #prediction {
             margin-top: 20px;
             font-size: 20px;
             font-weight: bold;
+        }
+        
+        .progress-container {
+            width: 60%;
+            background-color: #ddd;
+            border-radius: 20px;
+            margin: 20px auto;
+            height: 25px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            text-align: center;
+            line-height: 25px;
+            color: white;
+            font-weight: bold;
+            background-color: orange;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
         }
     </style>
 </head>
@@ -62,6 +86,14 @@
     <h1>🚗 Smart Parking System</h1>
     <!-- 🔮 ML Prediction -->
     <h2 id="prediction">🔮 Prediction loading...</h2>
+
+    <!-- Counts -->
+    <div id="counts"></div>
+
+    <!-- Progress bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar">0%</div>
+    </div>
 
     <div class="container" id="parking"></div>
 
@@ -73,14 +105,20 @@
             const container = document.getElementById("parking");
             container.innerHTML = "";
 
+            let freeCount = 0;
+            let occupiedCount = 0;
+            let totalSlots = Object.keys(data).length;
+
             for (let slot in data) {
                 let div = document.createElement("div");
                 div.classList.add("slot");
 
                 if (data[slot] == 0) {
                     div.classList.add("empty");
+                    freeCount++;
                 } else {
                     div.classList.add("occupied");
+                    occupiedCount++;
                 }
 
                 div.innerHTML = `
@@ -92,6 +130,16 @@
 
                 container.appendChild(div);
             }
+
+            document.getElementById("counts").innerHTML = `
+            <h3>Total Free Slots: ${freeCount}</h3>
+            <h3>Total Occupied Slots: ${occupiedCount}</h3>
+        `;
+
+            let occupancyPercent = Math.round((occupiedCount / totalSlots) * 100);
+            const progressBar = document.getElementById("progressBar");
+            progressBar.style.width = occupancyPercent + "%";
+            progressBar.innerText = occupancyPercent + "%";
         }
 
         async function updateSlot(slot, status) {
@@ -123,6 +171,7 @@
 
         // Load first time
         loadSlots();
+        loadPrediction();
 
         // Auto refresh every 3 sec
         setInterval(loadSlots, 3000);
